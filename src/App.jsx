@@ -852,10 +852,6 @@ function InvestorTypeSelector({ active, onChange }) {
 
 // ── MAIN COMPONENT ──
 export default function App() {
-  const activePresets = 
-    investorType === "fundamental" ? FUNDAMENTAL_PRESETS :
-    investorType === "technical"   ? TECHNICAL_PRESETS :
-    COMBINED_PRESETS;
   const [filters, setFilters] = useState([{ id: 1, field: "pe", operator: "<", value: 100 }]);
   const [universe, setUniverse] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -864,7 +860,12 @@ export default function App() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [beginnerMode, setBeginnerMode] = useState(true);
   const [activeBegTab, setActiveBegTab] = useState("beg_quality");
-  const [investorType, setInvestorType] = useState("fundamental");
+  const [viewType, setViewType] = useState("fundamental");
+  const activePresets = 
+    viewType === "fundamental" ? FUNDAMENTAL_PRESETS :
+    viewType === "technical"   ? TECHNICAL_PRESETS :
+    COMBINED_PRESETS;
+
   const [fetchedAt, setFetchedAt] = useState(null);
   const [search, setSearch] = useState("");
   const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
@@ -928,9 +929,9 @@ export default function App() {
   const addFilter = () => setFilters([...filters, { id: Date.now(), field: "pe", operator: "<", value: 20 }]);
   const removeFilter = (id) => {
       if (filters.length === 1) {
-        const defaultField = investorType === "technical" ? "vsMA200" : "pe";
-        const defaultOp = investorType === "technical" ? ">" : "<";
-        const defaultVal = investorType === "technical" ? 0 : 100;
+        const defaultField = viewType === "technical" ? "vsMA200" : "pe";
+        const defaultOp = viewType === "technical" ? ">" : "<";
+        const defaultVal = viewType === "technical" ? 0 : 100;
         setFilters([{ 
           id: Date.now(), 
           field: defaultField, 
@@ -1110,7 +1111,7 @@ export default function App() {
                             setVisibleCount(50);
                             setSelectedStock(null);
                             setSearch("");
-                            if (!newMode) setInvestorType("fundamental");
+                            if (!newMode) setViewType("fundamental");
                         }}
                         style={{
                             width: 36, height: 20, borderRadius: 10, background: beginnerMode ? "#10b981" : "var(--color-border-tertiary)",
@@ -1225,9 +1226,9 @@ export default function App() {
           </div>
 
           <InvestorTypeSelector
-            active={investorType}
+            active={viewType}
             onChange={(type) => {
-              setInvestorType(type);
+              setViewType(type);
               const defaults = {
                 fundamental: [{ id: Date.now(), field: "pe", operator: "<", value: 100 }],
                 technical: [{ id: Date.now(), field: "vsMA200", operator: ">", value: 0 }],
@@ -1277,14 +1278,14 @@ export default function App() {
                                 value={f.field} onChange={e => updateFilter(f.id, { field: e.target.value })}
                                 style={{ flex: "0 0 180px", width: 180, borderRadius: 8, height: 38, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", padding: "0 8px" }}
                               >
-                                                                    { ["fundamental", "combined"].includes(investorType) && (
+                                                                    { ["fundamental", "combined"].includes(viewType) && (
                                     <optgroup label="📊 Fundamental">
-                                      {Object.entries(METRIC_CONFIG).filter(([key, c]) => c.category === "fundamental" && METRIC_CATEGORIES[investorType].includes(key)).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
+                                      {Object.entries(METRIC_CONFIG).filter(([key, c]) => c.category === "fundamental" && METRIC_CATEGORIES[viewType].includes(key)).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
                                     </optgroup>
                                   )}
-                                  { ["technical", "combined"].includes(investorType) && (
+                                  { ["technical", "combined"].includes(viewType) && (
                                     <optgroup label="📈 Technical">
-                                      {Object.entries(METRIC_CONFIG).filter(([key, c]) => c.category === "technical" && METRIC_CATEGORIES[investorType].includes(key)).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
+                                      {Object.entries(METRIC_CONFIG).filter(([key, c]) => c.category === "technical" && METRIC_CATEGORIES[viewType].includes(key)).map(([key, cfg]) => <option key={key} value={key}>{cfg.label}</option>)}
                                     </optgroup>
                                   )}
                               </select>
@@ -1378,11 +1379,11 @@ export default function App() {
                     {fetchedAt && <span style={{ color: "var(--color-text-tertiary)", fontSize: 11 }}> · sync at {fetchedAt.toLocaleTimeString()}</span>}
                                     <span style={{
                     fontSize: 11, padding: "2px 8px", borderRadius: 4,
-                    background: INVESTOR_TYPES.find(t=>t.id===investorType)?.bgColor,
-                    color: INVESTOR_TYPES.find(t=>t.id===investorType)?.color,
+                    background: INVESTOR_TYPES.find(t=>t.id===viewType)?.bgColor,
+                    color: INVESTOR_TYPES.find(t=>t.id===viewType)?.color,
                     fontWeight: 600, marginLeft: 8
                   }}>
-                    {INVESTOR_TYPES.find(t=>t.id===investorType)?.label} Screen
+                    {INVESTOR_TYPES.find(t=>t.id===viewType)?.label} Screen
                   </span>
 </div>
                   <button 
