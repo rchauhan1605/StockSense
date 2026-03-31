@@ -911,18 +911,18 @@ export default function App() {
     if (loading) return;
     setLoading(true);
     setError(null);
-    setProgress("Connecting to Yahoo Finance...");
+    setProgress(null);
     try {
         const data = await fetchStockData((batchNum, totalBatches, loadedCount) => {
-            setProgress(`Fetched ${loadedCount} stocks... (Batch ${batchNum}/${totalBatches})`);
+            // keep it silent or optional
         });
         setUniverse(data);
         setFetchedAt(new Date());
     } catch (e) {
-        setError(e.message);
+        setUniverse(OFFLINE_MOCK_DATA);
+        setError("fallback");
     } finally {
         setLoading(false);
-        setProgress(null);
     }
   }
 
@@ -1129,24 +1129,28 @@ export default function App() {
 
           {beginnerMode ? (
             <>
-              {error ? (
-                <div style={{ border: "1px dashed #ef4444", borderRadius: 16, padding: "4rem 2rem", textAlign: "center", background: "#fee2e2" }}>
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: "#991b1b" }}>Failed to sync market data</div>
-                    <p style={{ fontSize: 13, color: "#b91c1c", maxWidth: 400, margin: "8px auto 0" }}>{error}</p>
-                    <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20 }}>
-                        <button onClick={loadUniverse} style={{ fontSize: 13, padding: "8px 16px", background: "#ef4444", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Try Again</button>
-                        <button onClick={() => { setUniverse(OFFLINE_MOCK_DATA); setError(null); setFetchedAt(new Date()); }} style={{ fontSize: 13, padding: "8px 16px", background: "transparent", color: "#991b1b", border: "1px solid #fca5a5", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Use Offline Mock Data</button>
-                    </div>
-                </div>
-              ) : loading ? (
-                <div style={{ padding: "4rem 0", textAlign: "center" }}>
-                   <div style={{ width: 40, height: 40, border: "3px solid #eee", borderTopColor: "#10b981", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
-                   <p style={{ fontSize: 14, color: "var(--color-text-primary)", fontWeight: 500 }}>Syncing live market data from Yahoo Finance...</p>
-                   {progress && <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 8 }}>{progress}</p>}
-                   <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              {loading ? (
+                <div style={{ textAlign: "center", padding: "4rem 0" }}>
+                  <div>🔄 Loading market data...</div>
                 </div>
               ) : (
+                <>
+                  {error === "fallback" && (
+                    <div style={{
+                      background: "#fffbeb",
+                      border: "1px solid #fcd34d",
+                      padding: "16px",
+                      borderRadius: 12,
+                      marginBottom: "1rem"
+                    }}>
+                      <div style={{ fontWeight: 600 }}>
+                        Showing sample data for now while we connect to live market sources.
+                      </div>
+                      <button onClick={loadUniverse}>
+                        Retry Live Data
+                      </button>
+                    </div>
+                  )}
                 <BeginnerModeView
                   tabs={BEGINNER_TABS}
                   activeTab={activeBegTab}
@@ -1167,6 +1171,7 @@ export default function App() {
                   visibleCount={visibleCount}
                   onLoadMore={() => setVisibleCount(v => v + 20)}
                 />
+                </>
               )}
             </>
           ) : (
@@ -1319,24 +1324,29 @@ export default function App() {
               </div>
           )}
 
-          {error ? (
-            <div style={{ border: "1px dashed #ef4444", borderRadius: 16, padding: "4rem 2rem", textAlign: "center", background: "#fee2e2" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: "#991b1b" }}>Failed to sync market data</div>
-                <p style={{ fontSize: 13, color: "#b91c1c", maxWidth: 400, margin: "8px auto 0" }}>{error}</p>
-                <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20 }}>
-                    <button onClick={loadUniverse} style={{ fontSize: 13, padding: "8px 16px", background: "#ef4444", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Try Again</button>
-                    <button onClick={() => { setUniverse(OFFLINE_MOCK_DATA); setError(null); setFetchedAt(new Date()); }} style={{ fontSize: 13, padding: "8px 16px", background: "transparent", color: "#991b1b", border: "1px solid #fca5a5", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Use Offline Mock Data</button>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "4rem 0" }}>
+              <div>🔄 Loading market data...</div>
+            </div>
+          ) : (
+            <>
+              {error === "fallback" && (
+                <div style={{
+                  background: "#fffbeb",
+                  border: "1px solid #fcd34d",
+                  padding: "16px",
+                  borderRadius: 12,
+                  marginBottom: "1rem"
+                }}>
+                  <div style={{ fontWeight: 600 }}>
+                    Showing sample data for now while we connect to live market sources.
+                  </div>
+                  <button onClick={loadUniverse}>
+                    Retry Live Data
+                  </button>
                 </div>
-            </div>
-          ) : loading ? (
-            <div style={{ padding: "4rem 0", textAlign: "center" }}>
-               <div style={{ width: 40, height: 40, border: "3px solid #eee", borderTopColor: "#10b981", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
-               <p style={{ fontSize: 14, color: "var(--color-text-primary)", fontWeight: 500 }}>Syncing live market data from Yahoo Finance...</p>
-               {progress && <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 8 }}>{progress}</p>}
-               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-          ) : activeTab === "watchlist" && watchlist.length === 0 ? (
+              )}
+              {activeTab === "watchlist" && watchlist.length === 0 ? (
             <div style={{ border: "1px dashed var(--color-border-tertiary)", borderRadius: 16, padding: "4rem 2rem", textAlign: "center", background: "var(--color-background-secondary)" }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>⭐</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: "var(--color-text-primary)" }}>Your watchlist is empty</div>
@@ -1462,6 +1472,8 @@ export default function App() {
               )}
             </div>
           )}
+              </>
+            )}
             </>
           )}
         </div>
