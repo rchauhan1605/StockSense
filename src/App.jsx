@@ -307,15 +307,9 @@ const COMBINED_PRESETS = [
 ];
 
 const BEGINNER_PRESETS = [
-    { id: "undervalued",        name: "💎 Undervalued Stars",       desc: "Low P/E and Low P/B assets",                    filters: [{ field: "pe",             operator: "<", value: 15  }, { field: "pb",             operator: "<", value: 1.5 }] },
-    { id: "quality",            name: "🏆 Quality Champions",       desc: "High ROE consistent performers",                filters: [{ field: "roe",            operator: ">", value: 20  }, { field: "pe",             operator: "<", value: 35  }] },
-    { id: "income",             name: "💰 Dividend Income",         desc: "Stable yield for monthly income",               filters: [{ field: "divYield",       operator: ">", value: 2.5 }] },
-    { id: "momentum",           name: "🚀 Growth Momentum",         desc: "High ROE with positive price action",           filters: [{ field: "roe",            operator: ">", value: 18  }, { field: "change",         operator: ">", value: 0   }] },
-    { id: "nearHigh",           name: "🎯 Near 52W High",           desc: "Strong stocks near yearly peak",                filters: [{ field: "fromHigh52",     operator: ">", value: -5  }, { field: "roe",            operator: ">", value: 15  }] },
-    { id: "recovery",           name: "📈 Recovery Play",           desc: "Bouncing from yearly lows with quality",        filters: [{ field: "fromLow52",      operator: ">", value: 20  }, { field: "fromHigh52",     operator: "<", value: -20 }, { field: "pe", operator: "<", value: 30 }] },
-    { id: "maBreakout",         name: "⚡ MA Breakout",             desc: "Above both 50 and 200 day MA",                  filters: [{ field: "vsMA50",         operator: ">", value: 0   }, { field: "vsMA200",        operator: ">", value: 0   }] },
-    { id: "volumeSurge",        name: "🔥 Volume Surge",            desc: "Unusual buying activity today",                 filters: [{ field: "volumeSpike",    operator: ">", value: 150 }, { field: "change",         operator: ">", value: 1   }] },
-    { id: "compoundingMachine", name: "🏭 Compounding Machine",     desc: "High growth + high quality combo",              filters: [{ field: "roe",            operator: ">", value: 20  }, { field: "earningsGrowth", operator: ">", value: 15  }, { field: "revenueGrowth", operator: ">", value: 10 }] },
+    { id: "combo_quality_breakout", name: "🏆⚡ Quality Breakout", desc: "Fundamentally strong + technically breaking out", filters: [ { field: "roe", operator: ">", value: 18 }, { field: "pe", operator: "<", value: 30 }, { field: "vsMA50", operator: ">", value: 0 }, { field: "vsMA200", operator: ">", value: 0 } ] },
+    { id: "combo_growth_momentum", name: "🚀📊 Growth + Momentum", desc: "High earnings growth with volume confirmation", filters: [ { field: "earningsGrowth", operator: ">", value: 20 }, { field: "revenueGrowth", operator: ">", value: 15 }, { field: "volumeSpike", operator: ">", value: 120 }, { field: "change", operator: ">", value: 0 } ] },
+    { id: "combo_canslim", name: "🔀 CAN SLIM Style", desc: "Classic growth + technicals combo", filters: [ { field: "earningsGrowth", operator: ">", value: 25 }, { field: "revenueGrowth", operator: ">", value: 20 }, { field: "vsMA200", operator: ">", value: 5 }, { field: "volumeSpike", operator: ">", value: 130 }, { field: "fromHigh52", operator: ">", value: -15 } ] }
 ];
 
 // ── HELPERS ──
@@ -606,20 +600,20 @@ function BeginnerModeView({
           border: "1px dashed var(--color-border-tertiary)",
           borderRadius: 16
         }}>
-          <div style={{fontSize: 40, marginBottom: 12}}>🧘</div>
+          <div style={{fontSize: 40, marginBottom: 12}}>🏖️</div>
           <div style={{
             fontSize: 16, fontWeight: 600,
             color: "var(--color-text-primary)"
           }}>
-            No matches right now
+            No stocks matching this style
           </div>
           <p style={{
             fontSize: 13, color: "var(--color-text-secondary)",
             maxWidth: 320, margin: "8px auto 0"
           }}>
-            The market doesn't have stocks meeting these exact 
-            standards today. Check back after market hours or 
-            try another category.
+            The market currently doesn't have any stocks meeting these 
+            high standards. This is actually a good sign of discipline! 
+            Try another category or check back later.
           </p>
         </div>
       )}
@@ -660,6 +654,14 @@ function BeginnerModeView({
                       {s.symbol.replace(".NS", "")}
                     </span>
                     <SmartBadge stock={s} />
+                    {s.roe > 25 && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, background: "#fef3c7", color: "#d97706",
+                        padding: "2px 6px", borderRadius: 4, marginLeft: 6, border: "0.5px solid #fcd34d"
+                      }}>
+                        ✨ Recommended
+                      </span>
+                    )}
                   </div>
                   <div style={{
                     fontSize: 11,
@@ -1009,9 +1011,10 @@ export default function App() {
     });
   }, [begFilteredStocks, activeBegTab, beginnerMode]);
 
+  const safeUniverse = Array.isArray(universe) ? universe : [];
   const baseUniverse = showWatchlistOnly 
-    ? universe.filter(s => watchlist.includes(s.symbol))
-    : universe;
+    ? safeUniverse.filter(s => Array.isArray(watchlist) && watchlist.includes(s.symbol))
+    : safeUniverse;
 
   const filteredStocks = useMemo(() => {
     return baseUniverse.filter(s => {
@@ -1094,10 +1097,10 @@ export default function App() {
                     <FinanceIcon />
                     <div>
                         <h1 style={{ fontSize: 22, fontWeight: 600, color: "var(--color-text-primary)", margin: 0, letterSpacing: "-0.4px" }}>
-                            {beginnerMode ? "StockSense 🧠" : "StockSense Pro ⚡"}
+                            {beginnerMode ? "SmartScreener — Beginner Mode" : "SmartScreener NSE — Pro"}
                         </h1>
                         <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "2px 0 0" }}>
-                            {beginnerMode ? "Smart picks, zero confusion — investing made stupid simple" : "Full screening power · Live NSE data · No mercy on bad stocks"}
+                            {beginnerMode ? "Curated picks, no jargon" : "Full screening power"}
                         </p>
                     </div>
                 </div>
@@ -1130,7 +1133,7 @@ export default function App() {
           {beginnerMode ? (
             <>
               {loading ? (
-                <div style={{ textAlign: "center", padding: "4rem 0" }}>
+                <div style={{ textAlign: "center", padding: "4rem 0" }} className="pulse">
                   <div>🔄 Loading market data...</div>
                 </div>
               ) : (
@@ -1325,7 +1328,7 @@ export default function App() {
           )}
 
           {loading ? (
-            <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <div style={{ textAlign: "center", padding: "4rem 0" }} className="pulse">
               <div>🔄 Loading market data...</div>
             </div>
           ) : (
@@ -1419,35 +1422,47 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {displayedStocks.map((s, i) => (
-                        <tr key={s.symbol} 
-                          onClick={() => setSelectedStock(s)}
-                          style={{ background: i % 2 === 0 ? "var(--color-background-primary)" : "var(--color-background-secondary)", transition: "0.1s", cursor: "pointer" }}>
-                          <td style={{textAlign:"center", padding:"12px", cursor:"pointer"}}
-                            onClick={(e) => { e.stopPropagation(); toggleWatchlist(s.symbol); }}>
-                            <span style={{
-                              fontSize: 16,
-                              color: watchlist.includes(s.symbol) ? "#f59e0b" : "#e2e8f0"
-                            }}>
-                              {watchlist.includes(s.symbol) ? "★" : "☆"}
-                            </span>
+                      {displayedStocks.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} style={{ padding: "4rem 2rem", textAlign: "center" }}>
+                            <div style={{ fontSize: 40, marginBottom: 12 }}>🧘</div>
+                            <div style={{ fontSize: 16, fontWeight: 600, color: "var(--color-text-primary)" }}>No matches found</div>
+                            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 300, margin: "8px auto 0" }}>
+                              Try adjusting your filters or search terms to find more stocks.
+                            </p>
                           </td>
-                          <td style={{ ...tdStyle("left") }}>
-                            <div style={{ display: "flex", alignItems: "center" }}>
-                                <span style={{ fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>{s.symbol}</span>
-                                <SmartBadge stock={s} />
-                            </div>
-                            <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{s.company}</div>
-                          </td>
-                          <td style={{ ...tdStyle(), fontWeight: 600, color: "var(--color-text-primary)" }}>₹{(s.price || 0).toLocaleString("en-IN")}</td>
-                          <td style={{ ...tdStyle(), color: metricColor("change", s.change), fontWeight: 600 }}>{fmtPct(s.change)}</td>
-                          <td style={{ ...tdStyle(), color: metricColor("pe", s.pe) }}>{(s.pe || 0).toFixed(1)}</td>
-                          <td style={{ ...tdStyle() }}>{(s.pb || 0).toFixed(2)}</td>
-                          <td style={{ ...tdStyle(), color: metricColor("roe", s.roe), fontWeight: 500 }}>{(s.roe || 0).toFixed(1)}%</td>
-                          <td style={{ ...tdStyle() }}>{(s.divYield || 0).toFixed(2)}%</td>
-                          <td style={{ ...tdStyle(), fontSize: 11, color: "var(--color-text-tertiary)" }}>{s.sector}</td>
                         </tr>
-                      ))}
+                      ) : (
+                        displayedStocks.map((s, i) => (
+                          <tr key={s.symbol} 
+                            onClick={() => setSelectedStock(s)}
+                            style={{ background: i % 2 === 0 ? "var(--color-background-primary)" : "var(--color-background-secondary)", transition: "0.1s", cursor: "pointer" }}>
+                            <td style={{textAlign:"center", padding:"12px", cursor:"pointer"}}
+                              onClick={(e) => { e.stopPropagation(); toggleWatchlist(s.symbol); }}>
+                              <span style={{
+                                fontSize: 16,
+                                color: watchlist.includes(s.symbol) ? "#f59e0b" : "#e2e8f0"
+                              }}>
+                                {watchlist.includes(s.symbol) ? "★" : "☆"}
+                              </span>
+                            </td>
+                            <td style={{ ...tdStyle("left") }}>
+                              <div style={{ display: "flex", alignItems: "center" }}>
+                                  <span style={{ fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>{s.symbol}</span>
+                                  <SmartBadge stock={s} />
+                              </div>
+                              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{s.company}</div>
+                            </td>
+                            <td style={{ ...tdStyle(), fontWeight: 600, color: "var(--color-text-primary)" }}>₹{(s.price || 0).toLocaleString("en-IN")}</td>
+                            <td style={{ ...tdStyle(), color: metricColor("change", s.change), fontWeight: 600 }}>{fmtPct(s.change)}</td>
+                            <td style={{ ...tdStyle(), color: metricColor("pe", s.pe) }}>{(s.pe || 0).toFixed(1)}</td>
+                            <td style={{ ...tdStyle() }}>{(s.pb || 0).toFixed(2)}</td>
+                            <td style={{ ...tdStyle(), color: metricColor("roe", s.roe), fontWeight: 500 }}>{(s.roe || 0).toFixed(1)}%</td>
+                            <td style={{ ...tdStyle() }}>{(s.divYield || 0).toFixed(2)}%</td>
+                            <td style={{ ...tdStyle(), fontSize: 11, color: "var(--color-text-tertiary)" }}>{s.sector}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
